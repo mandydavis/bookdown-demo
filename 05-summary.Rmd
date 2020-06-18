@@ -1,3 +1,7 @@
-# Final Words
+# Discussion
 
-We have finished a nice book.
+The ICT-GEP as presented in the UNESCO report on digital skills and gender lacks many of the statistical details expected in research reports of this nature. Many unknowns about the exact methods employed remain, including, but not limited to: selection criteria, consideration of outliers, and tests used to measure correlation. This re-analysis confirmed that there is a moderate, negative correlation between GGGI and the percent of women among ICT graduates. Additionally, this correlation is equivalent to the correlation produced when adjusting for the disparity between the base number of women and men graduates. A third correlation concerning the disparity between the percentage of women and men graduates who graduate from an ICT program produced a weaker correlation that is not equivalent to the other two correlation methods. 
+
+These findings demonstrate the need for further scrutinization of the methods employed by Stoet & Geary (2018) and the UNESCO Thinkpiece. Further consensus and clarification is needed before countries accept these results as evidence for the necessity (or lack thereof) of particular policy interventions.
+
+Future research should further investigate the validity of using the GGGI as the index of gender equality and consider alternatives other than the BIGI. Other variables besides gender equality should also be examined, such as the size of the ICT industry in each country. Future qualitative research should also be considered to avoid some of the pitfalls of this quantitative approach, like the possibility of spurious correlation. For example, interviews of women who pursued an undergraduate ICT education in an Arab State but a graduate ICT education in a European country would offer a wealth of information about the potential factors underlying the ICT-GEP hypothesis.   

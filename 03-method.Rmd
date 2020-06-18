@@ -1,3 +1,108 @@
-# Methods
+# Analysis
 
-We describe our methods in this chapter.
+## Variables
+The normality of all six variables needed for the correlations is examined via Shapiro-Wilk tests for normality: 
+
+1. percentage of women graduates who graduate from ICT programs, 
+2. percentage of men graduates who graduate from ICT programs, 
+3. percentage of women among ICT graduates, 
+4. percentage of women among ICT graduates adjusted for the disparity in the ratio of women to men who graduate from all programs,
+5. disparity between the percentage of all women versus all men graduates who graduate from an ICT program and 
+6. GGGI 
+
+## Normality
+Of these six variables, only three follow a normal distribution: variable (3) variable (5), and  variable (6). The table below displays all results of the Shapiro-Wilk tests. Because Pearson's correlation coefficient (*r*) is the metric of interest, no transformations to the data are needed because Pearson's *r* requires continuous, but not normal data.  
+
+variable        | W             | p-value      |
+----------------| --------------|--------------|
+**1**           | 0.7473        | 5.056e-12    |
+**2**           | 0.9033        | 1.499e-06    |
+**3**           | 0.9693        | 0.0170       |
+**4**           | 0.9498        | 0.0007       |
+**5**           | 0.9809        | 0.1433       |
+**6**           | 0.9890        | 0.5647       |
+
+## Outliers and data omission
+Mahalonobis $D^{2}$ values were computed for four of the six variables. The other two variables, variables (4) and (5) were omitted, as they were computed directly using variables (1) and (2). Including these variables and thus, their dependencies, will not allow for Mahalonobis $D^{2}$ calculations to be possible.
+
+The Q-Q plot below displays each of the countries' Mahalonobis $D^{2}$ values (the seven countries that deviate the most are labeled with their iso_a3 country code). 
+
+``` {r normality_outliers, echo=FALSE, fig.align='center'}
+#############################
+##### organize the data #####
+#############################
+# percent_of_women data
+percent_of_women <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/percent_of_women.csv", header = TRUE)
+percent_of_women <- subset(percent_of_women, Indicator == 'Percentage of female graduates from tertiary education graduating from Information and Communication Technologies programmes, female (%)')
+percent_of_women_avg <- aggregate(percent_of_women[,'Value'], list(percent_of_women$LOCATION), mean)
+# percent_of_men data
+percent_of_men <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/percent_of_men.csv", header = TRUE)
+percent_of_men <- subset(percent_of_men, Indicator == 'Percentage of male graduates from tertiary education graduating from Information and Communication Technologies programmes, male (%)')
+percent_of_men_avg <- aggregate(percent_of_men[,'Value'], list(percent_of_men$LOCATION), mean)
+# add a/(a+b) column
+percent_of_ict_adjusted <- percent_of_women_avg
+percent_of_ict_adjusted$b <- percent_of_men_avg[,'x']
+colnames(percent_of_ict_adjusted) <- cs(iso_a3, a, b)
+# add a column for the percent_of_ict adjusted percentage
+percent_of_ict_adjusted$adjusted <- 100*percent_of_ict_adjusted[,'a']/(percent_of_ict_adjusted[,'a']+percent_of_ict_adjusted[,'b'])
+# add a column for the disparity percentage
+percent_of_ict_adjusted$disparity <- percent_of_ict_adjusted[,'a'] - percent_of_ict_adjusted[,'b']
+
+
+# percent_of_ict data + gggi data
+ict_ggi <- merge(ict_averages, ggi_index, by.x='iso_a3', by.y='Country.ISO3')
+
+# append the gggi data
+ict_ggi_adjusted <- merge(percent_of_ict_adjusted, ggi_index, by.x='iso_a3', by.y='Country.ISO3')
+
+# store all relevant columns in the same data frame
+three_correlations <- merge(x = percent_of_ict_adjusted, y = ict_ggi[, c('iso_a3', 'average_ict','avg_ggi')], by = 'iso_a3')
+# remove countries that have missing data for any of the six variables
+three_correlations <- na.exclude(three_correlations)
+
+outlier_test <- three_correlations[, cs(iso_a3, a, b, average_ict, avg_ggi)]
+# make the rownames the country codes so we can visualize this in the output plot
+rownames(outlier_test) <- outlier_test[,'iso_a3']
+# remove the iso_a3 column so that we can run the outlier test
+outlier_test <- outlier_test[,-1]
+# change colnames for purposes of the output table
+colnames(outlier_test) <- cs(variable_1, variable_2, variable_3, variable_6)
+# run the test and plot the results
+d2 <- outlier(outlier_test, bad = 7)
+# this will print any country/countries we should remove
+outlier.d2 <- data.frame(outlier_test,d2)
+```
+
+The figure below shows bivariate scatter plots, histograms, and the Pearson correlations for and between each of the four variables, with any outliers marked with a blue dot. Only one country, Oman (iso_a3 'OMN'), has a Mahalonobis $D^{2}$ value of greater than 25. Therefore, Oman is the sole country to be removed from the analysis for being an outlier. 
+
+```{r outlier_pairs_panels, echo=FALSE, fig.align='center'}
+pairs.panels(outlier.d2,bg=c("yellow","blue")[(d2 > 25)+1],pch=21)
+
+# remove Oman from ict_ggi, ict_ggi_adjusted, and three_correlations
+ict_ggi <- subset(ict_ggi, iso_a3 != 'OMN')
+ict_ggi_adjusted <- subset(ict_ggi_adjusted, iso_a3 != 'OMN')
+three_correlations <- subset(three_correlations, iso_a3 != 'OMN')
+```
+
+However, in order to correctly compare the three correlations, an identical set of countries must be the subject of each. The second and third correlations depend on the existence of data for variables (1) and (2), whereas the third correlation depends on the existence of data for variable (3). One country, Sri Lanka, has data for variable (3), but not variables (1) and (2). Thus, Sri Lanka was the second and final country to be removed from the analysis. This leaves 102 remaining countries for which sufficient data is available. 
+
+## Data description
+Descriptive statistics for the 102 countries and the bivariate scatter plots, histograms, and the Pearson correlations for the data after removing the outlier:
+``` {r description, echo=FALSE, fig.align='center'}
+############################
+##### data description #####
+############################
+
+# remove iso_a3 column and reorder columns for consistency
+three_correlations <- three_correlations[, cs(a, b, average_ict, adjusted, disparity, avg_ggi)]
+# change colnames for purposes of the output table
+colnames(three_correlations) <- cs(variable_1, variable_2, variable_3, variable_4, variable_5, variable_6)
+# descriptive statistics
+describe(three_correlations)
+# visualize
+pairs.panels(three_correlations)
+# change colnames back 
+colnames(three_correlations) <- cs(a, b, average_ict, adjusted, disparity, avg_ggi)
+```
+
+The ICT-GEP Thinkpiece does not offer an explanation regarding the consideration or removal of outliers. However, through a simple count of the countries listed in the Thinkpiece's reference data, it appears that only 79 countries were included in the analysis. 

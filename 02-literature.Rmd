@@ -1,3 +1,31 @@
-# Literature
+# Methods
 
-Here is a review of existing methods.
+```{r set-options, echo=FALSE, cache=FALSE}
+# this makes sure the tables won't be split across multiple rows
+options(width = 1000)
+```
+
+## Clarifying the UNESCO statistics and their usage in prior literature
+Both Stoet & Geary (2018) and the Thinkpiece utilize The UNESCO Institute for Statistics (UIS) education database. Though the two analyses seemingly mirror each other, a closer look suggests that there are important nuances in the application of the UIS statistics in both. To offer clarity, definitions of two important statistics, henceforth **percent_of_women** and **percent_of_ict**, follows.
+
+### Percentage of female graduates from ICT programs in tertiary education: **percent_of_women**
+This percentage is derived from dividing the number of women who graduate with an ICT tertiary degree by the number of women who graduate with any tertiary degree. For example, in Algeria, this number was 2.13% in 2016, whereas in the US, it was 1.53% in 2016.
+
+### Percentage of graduates from ICT programs in tertiary education who are female: **percent_of_ict**
+This percentage is derived from dividing the number of women who graduate with an ICT tertiary degree by the total number of men and women who graduate with an ICT tertiary degree. Note that this statistic does not account for any gender differences in overall tertiary degrees earned. Presumably, the number of ICT tertiary degrees earned is correlated with the total number of degrees earned, so differences in these base rates should be considered in analyses, contrary to the arguments of Richardson et al. (2020). As an example of what these **percent_of_ict** statistics look like, 54.28% of Algerian ICT tertiary graduates in 2016 were women, wherease 23.61% of American ICT tertiary graduates in 2016 were women.
+
+### Which statistics do Stoet & Geary (2018) and the ICT-GEP Thinkpiece use?
+Stoet & Geary (2018) plug the **percent_of_women** data into a formula they claim represents the percentage of women in STEM when equal numbers of men and women enroll at the university. This formula is $a/(a+b)$ where $a$ is the "percentage of women who
+graduate with STEM degrees (relative to all women graduating)" and $b$ is "the percentage of men who
+graduate with STEM degrees (relative to all men graduating)". Stoet & Geary's (2020, p. 1). The explanation of this formula states that "the resulting number can be interpreted as the percentage of women in STEM when equal numbers of men and women enroll at university" (Stoet & Geary 2020, p. 1). There are a few notable subtleties about this language: the UIS education data is collected on the country level (not the university level) and additionally, the data the authors utilized represent when equal numbers of men and women *graduate with tertiary degrees* within that country (there is a subtle difference between enrollment and completion/graduation). Lastly, Stoet & Geary (2018) take the average of each country's available data from 2012-2015.
+
+Taking a different approach, ICT-GEP Thinkpiece utilizes the **percent_of_ict** data and does not transform this data in any way. It is unclear what criteria were used for determining which year's data was selected for the analysis, as there was not a consistent method for each country's data. The Thinkpiece was published on May 22, 2019 [@khazanMoreGenderEquality2018], which was before the 2018 UNESCO Education data was released on September 12, 2019 [@UISEducationData2019]. However, this does not explain the inconsistency in year selection. For example, the Thinkpiece uses 2017 data for Singapore (latest data available), but 2016 data for Switzerland though there is 2017 data available. Though the Thinkpiece visually and verbally presents the negative correlation between GGGI and the percent of women among ICT graduates, the authors do not provide any further statistical detail (e.g., Pearson's *r*). The language presented on the Thinkpiece correlation plot suggests confusion (or else, lack of precision) between **percent_of_women** and **percent_of_ict**. As mentioned, the Thinkpiece plots the "Percentage of graduates from ICT programs in tertiary education who are female" (**percent_of_ict**); however, labels on opposite ends of the graph read, "HIGH percentage of women completing ICT programmes" and "LOW percentage of women completing ICT programmes." This language describes to the **percent_of_women** data, though that is not what was plotted in the Thinkpiece.
+
+## The present research
+Stoet & Geary (2018) and the Thinkpiece represent two different methods for understanding the correlation between GGGI and the percentage of ICT tertiary graduates who are women, the **percent_of_women** and **percent_of_ict** approaches, respectively. In line with prior research that is interested in correlations with the GGGI [@http://zotero.org/users/local/QzsQ9z3m/items/UTQ7LAC5], a third method is proposed here. This method, henceforth **ict_disparity**, examines the correlation between the GGGI and the ICT graduation sex-difference index. All three methods will be compared using the `corcor()` function to determine whether each of the three strategies produce the same correlation. As a summary, the following three correlations will be computed with the ICT data:
+
+* Method #1: the **percent_of_ict** approach (Thinkpiece)
+* Method #2: the **percent_of_women** propensity approach (Stoet & Geary)
+* Method #3: the **ict_disparity** approach
+
+All data is available for free download online ([ICT data](http://data.uis.unesco.org/Index.aspx?DataSetCode=EDULIT_DS&popupcustomise=true&lang=en#), [GGGI data](https://tcdata360-backend.worldbank.org/api/v1/datasets/743/dump.csv)). For all ICT variables, each country's value was determined by averaging all available data from 2013-2019. Each country's GGGI value  represents the average GGGI across the years 2013 to 2018 (2019 data not available). Though 2019 data is included in the ICT data, but not the GGGI data, only two countries, Georgia and Kazakhstan, have 2019 ICT data. 

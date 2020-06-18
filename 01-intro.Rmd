@@ -1,21 +1,168 @@
-# Introduction {#intro}
+# Visualizing the ICT-GEP {#maps}
 
-You can label chapter and section titles using `{#label}` after them, e.g., we can reference Chapter \@ref(intro). If you do not manually label them, there will be automatic labels anyway, e.g., Chapter \@ref(methods).
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 
-Figures and tables with captions will be placed in `figure` and `table` environments, respectively.
+library(psych)
+library(psychTools)
 
-```{r nice-fig, fig.cap='Here is a nice figure!', out.width='80%', fig.asp=.75, fig.align='center'}
-par(mar = c(4, 4, .1, .1))
-plot(pressure, type = 'b', pch = 19)
+# for correlation comparison magic
+installed.packages('cocor')
+library(cocor)
+
+# mapping packages
+library("ggplot2")
+theme_set(theme_bw())
+library("sf")
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("rgeos")
+library(rstudioapi)
+library(tidyverse) # ggplot2, dplyr, tidyr, readr, purrr, tibble
+library(magrittr) # pipes
+library(lintr) # code linting
+library(raster) # raster handling (needed for relief)
+library(viridis) # viridis color scale
+library('dichromat') # includes the color scale used on the world maps
+
+# needed for transforming and combining data frames
+library('dplyr')
+
+# font package (note: what you get depends on what's stored on your individual machine)
+library(extrafont)
+font_import()
 ```
 
-Reference a figure by its code chunk label with the `fig:` prefix, e.g., see Figure \@ref(fig:nice-fig). Similarly, you can reference tables generated from `knitr::kable()`, e.g., see Table \@ref(tab:nice-tab).
+``` {r ict_map_setup, echo=FALSE}
+# store the world! 
+world <- ne_countries(scale = "medium", returnclass = "sf")
+world <- subset(world, name_long != 'Antarctica')
 
-```{r nice-tab, tidy=FALSE}
-knitr::kable(
-  head(iris, 20), caption = 'Here is a nice table!',
-  booktabs = TRUE
-)
+# set theme for maps
+# set defaults
+default_font_family <- 'Tahoma'
+default_font_color <- '#22211d'
+default_background_color <- '#f5f5f2'
+theme_map <- function(...) {
+  theme_minimal() +
+    theme(
+      text = element_text(family = default_font_family,
+                          color = default_font_color),
+      # remove all axes
+      axis.line = element_blank(),
+      axis.text.x = element_blank(),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      # add a subtle grid
+      # panel.grid.major = element_line(color = "#dbdbd9", size = 0.2),
+      # panel.grid.minor = element_blank(),
+      # background colors
+      plot.background = element_rect(fill = default_background_color,
+                                     color = NA),
+      panel.background = element_rect(fill = default_background_color,
+                                      color = NA),
+      legend.background = element_rect(fill = default_background_color,
+                                       color = NA),
+      # borders and margins
+      plot.margin = unit(c(.5, .5, .2, .5), "cm"),
+      panel.border = element_blank(),
+      panel.spacing = unit(c(-.1, 0.2, .2, 0.2), "cm"),
+      # titles
+      legend.title = element_text(size = 9, margin = margin(-.2,0,.2,0, unit = 'cm')),
+      legend.text = element_text(size = 9, hjust = 0,
+                                 color = default_font_color),
+      legend.position="bottom", 
+      legend.box = "horizontal" ,
+      plot.title = element_text(size = 14, hjust = 0.5,
+                                color = default_font_color),
+      plot.subtitle = element_text(size = 9, hjust = 0.5,
+                                   color = default_font_color,
+                                   margin = margin(b = .5,
+                                                   t = 0,
+                                                   l = 2,
+                                                   unit = "cm"),
+                                   debug = F),
+      # captions
+      plot.caption = element_text(size = 7,
+                                  hjust = .5,
+                                  margin = margin(t = 0.2,
+                                                  b = 0,
+                                                  unit = "cm"),
+                                  color = "#939184"),
+      ...
+    )
+}
+
+# ict data 
+# source:  http://data.uis.unesco.org/Index.aspx?DataSetCode=EDULIT_DS&popupcustomise=true&lang=en#
+# path from source to data: education --> completion --> percentage of tertiary graduates --> percentage of female graduates by field of study
+# note on country codes: to join the various data frames, it essential to include the iso_a3 coutnry codes in each of the original data frames,
+# so be sure to select 'customise' --> 'table options' and finally, check the box to use codes for country
+ict_raw <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/ict.csv")
+# the distinct country codes in case you need them
+ict_countries <- levels(ict_raw[,'LOCATION'])
+# get average across all years that each country has data for (2013-2019)
+ict_averages <- aggregate(ict_raw[,'Value'], list(ict_raw$LOCATION), mean)
+# rename columns
+colnames(ict_averages) <- c('iso_a3', 'average_ict')
+
+# ict + world !!!
+ict_world <- merge(world, ict_averages, by.x='iso_a3', by.y='iso_a3', all.x = TRUE)
+# note: many tidbits borrowed from this blog post: https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/
 ```
 
-You can write citations, too. For example, we are using the **bookdown** package [@R-bookdown] in this sample book, which was built on top of R Markdown and **knitr** [@xie2015].
+
+Before diving into the data, these maps offer a visual explanation of the ICT-GEP when using the analysis method from the UNESCO Thinkpiece.
+
+## Percent of women among ICT Graduates worldwide
+
+```{r ict_map, echo=FALSE, fig.align='center'}
+ggplot(data = ict_world) +
+  # it is essential to have the empty 'colour' string here so that we can include the 'no data' legend
+  geom_sf(aes(fill = average_ict, colour="")) +
+  scale_fill_viridis_c(option = "viridis", name = '% of graduates\n who are women',
+                       guide = guide_colorbar(title.position = 'top', title.hjust = 0.5,
+                                              label.hjust = 0.5, ticks = FALSE), na.value = '#d6d6d2') +
+  scale_colour_manual(values=NA) +              
+  guides(colour=guide_legend("\nNo data", override.aes=list(colour="#d6d6d2"), title.position = 'top')) +
+  labs(x = NULL,
+       y = NULL,
+       title = "ICT Gender Equality Paradox",
+       subtitle = "Percent of women among ICT graduates (2013-2019)",
+       caption = "Data: UNESCO Institute For Statistics, displaying the average of a country's available data from 2013-2019") +
+  theme_map()
+```
+
+Note the visual reversal of colors when comparing the ICT map to the GGGI map. This is exactly the idea behind the ICT-GEP: the higher the gender equality, the lower the percentage of women among ICT graduates.
+
+## Global Gender Gap Index worldwide
+
+``` {r ggi_map, echo=FALSE, fig.align='center'}
+# ggi (2013-2019) + world !!!
+# data download: https://tcdata360-backend.worldbank.org/api/v1/datasets/743/dump.csv
+# data hub: https://tcdata360.worldbank.org/indicators/af52ebe9?country=BRA&indicator=27959&viz=line_chart&years=2006,2018
+ggi_raw <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/ggi.csv", header = TRUE)
+# reduces the data frame to contain only the relevant data, aka the ggi index value for 2018
+ggi_index <- subset(ggi_raw, Indicator=='Overall Global Gender Gap Index' & Subindicator.Type== 'Index')
+# find average GGI from 2013-2018
+ggi_index$avg_ggi <- rowMeans(ggi_index[,13:17], na.rm = TRUE)
+
+# combine ggi & world data (all.x = true performs an outer join to preserve the countries that do not appear in the ggi data)
+ggi_world <- merge(world, ggi_index, by.x='iso_a3', by.y='Country.ISO3', all.x = TRUE)
+
+# map to visualize 2018 ggi index
+# note: many tidbits borrowed from this blog post: https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/
+ggplot(data = ggi_world) +
+  geom_sf(aes(fill = avg_ggi, colour="")) +
+  scale_fill_viridis_c(option = "viridis", name = 'GGI',
+                       guide = guide_colorbar(title.position = 'top', title.hjust = 0.5,
+                                              label.hjust = 0.5, ticks = FALSE), na.value = '#d6d6d2') +
+  scale_colour_manual(values=NA) +              
+  guides(colour=guide_legend("No data", override.aes=list(colour="#d6d6d2"), title.position = 'top')) +
+  labs(x = NULL,
+       y = NULL,
+       title = "Global Gender Gap Index (GGGI) (2013-2018)",
+       subtitle = "GGGI considers four outcomes of gender disparity:\nEconomic Participation and Opportunity, Educational Attainment, Health and Survival and Political Empowerment",
+       caption = "Data: World Bank, 2020. Note: Gender parity is represented by a GGGI of 1.0") +
+  theme_map()
+```
