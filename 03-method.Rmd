@@ -7,7 +7,7 @@ The normality of all six variables needed for the correlations is examined via S
 2. percentage of men graduates who graduate from ICT programs, 
 3. percentage of women among ICT graduates, 
 4. percentage of women among ICT graduates adjusted for the disparity in the ratio of women to men who graduate from all programs,
-5. disparity between the percentage of all women versus all men graduates who graduate from an ICT program and 
+5. disparity between the percentage of all women versus all men graduates who graduate from an ICT program, and 
 6. GGGI 
 
 ## Normality
@@ -32,11 +32,11 @@ The Q-Q plot below displays each of the countries' Mahalonobis $D^{2}$ values (t
 ##### organize the data #####
 #############################
 # percent_of_women data
-percent_of_women <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/percent_of_women.csv", header = TRUE)
+percent_of_women <- read.csv("./data & R script/data/percent_of_women.csv", header = TRUE)
 percent_of_women <- subset(percent_of_women, Indicator == 'Percentage of female graduates from tertiary education graduating from Information and Communication Technologies programmes, female (%)')
 percent_of_women_avg <- aggregate(percent_of_women[,'Value'], list(percent_of_women$LOCATION), mean)
 # percent_of_men data
-percent_of_men <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/percent_of_men.csv", header = TRUE)
+percent_of_men <- read.csv("./data & R script/data/percent_of_men.csv", header = TRUE)
 percent_of_men <- subset(percent_of_men, Indicator == 'Percentage of male graduates from tertiary education graduating from Information and Communication Technologies programmes, male (%)')
 percent_of_men_avg <- aggregate(percent_of_men[,'Value'], list(percent_of_men$LOCATION), mean)
 # add a/(a+b) column
@@ -105,4 +105,4 @@ pairs.panels(three_correlations)
 colnames(three_correlations) <- cs(a, b, average_ict, adjusted, disparity, avg_ggi)
 ```
 
-The ICT-GEP Thinkpiece does not offer an explanation regarding the consideration or removal of outliers. However, through a simple count of the countries listed in the Thinkpiece's reference data, it appears that only 79 countries were included in the analysis. 
+The ICT-GEP Thinkpiece does not offer an explanation regarding the consideration or removal of outliers. However, through a simple count of the countries listed in the think piece's reference data, it appears that only 79 countries were included in the analysis. 

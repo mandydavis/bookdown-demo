@@ -98,7 +98,7 @@ theme_map <- function(...) {
 # path from source to data: education --> completion --> percentage of tertiary graduates --> percentage of female graduates by field of study
 # note on country codes: to join the various data frames, it essential to include the iso_a3 coutnry codes in each of the original data frames,
 # so be sure to select 'customise' --> 'table options' and finally, check the box to use codes for country
-ict_raw <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/ict.csv")
+ict_raw <- read.csv("./data & R script/data/ict.csv")
 # the distinct country codes in case you need them
 ict_countries <- levels(ict_raw[,'LOCATION'])
 # get average across all years that each country has data for (2013-2019)
@@ -112,7 +112,7 @@ ict_world <- merge(world, ict_averages, by.x='iso_a3', by.y='iso_a3', all.x = TR
 ```
 
 
-Before diving into the data, these maps offer a visual explanation of the ICT-GEP when using the analysis method from the UNESCO Thinkpiece.
+Before diving into the data, these maps offer a visual explanation of the ICT-GEP when using the analysis method from the UNESCO think piece.
 
 ## Percent of women among ICT Graduates worldwide
 
@@ -129,7 +129,8 @@ ggplot(data = ict_world) +
        y = NULL,
        title = "ICT Gender Equality Paradox",
        subtitle = "Percent of women among ICT graduates (2013-2019)",
-       caption = "Data: UNESCO Institute For Statistics, displaying the average of a country's available data from 2013-2019") +
+       caption = "Data: UNESCO Institute For Statistics, displaying the average of a country's available data from 2013-2019
+                  Map theme: https://timogrossenbacher.ch/2019/04/bivariate-maps-with-ggplot2-and-sf/") +
   theme_map()
 ```
 
@@ -141,7 +142,7 @@ Note the visual reversal of colors when comparing the ICT map to the GGGI map. T
 # ggi (2013-2019) + world !!!
 # data download: https://tcdata360-backend.worldbank.org/api/v1/datasets/743/dump.csv
 # data hub: https://tcdata360.worldbank.org/indicators/af52ebe9?country=BRA&indicator=27959&viz=line_chart&years=2006,2018
-ggi_raw <- read.csv("/Users/mandydavis/Desktop/Using R for Analysis/ggi.csv", header = TRUE)
+ggi_raw <- read.csv("./data & R script/data/ggi.csv", header = TRUE)
 # reduces the data frame to contain only the relevant data, aka the ggi index value for 2018
 ggi_index <- subset(ggi_raw, Indicator=='Overall Global Gender Gap Index' & Subindicator.Type== 'Index')
 # find average GGI from 2013-2018
